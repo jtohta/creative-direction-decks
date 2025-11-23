@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: Per the project constitution, Test-Driven Development is MANDATORY. All feature tasks MUST include tests written FIRST following Red-Green-Refactor cycle. Focus on integration tests, with some E2E tests and unit tests only for pure functions. See constitution Exception Process if TDD cannot be followed.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -79,21 +79,39 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 1 - RED Phase (MANDATORY) ⚠️
 
-> **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
+> **CONSTITUTION REQUIREMENT: Write these tests FIRST, ensure they FAIL before implementation**
+> **Testing Trophy: Integration tests (60-70%) + Unit tests for pure functions (10-20%)**
+> **Note: E2E tests written AFTER implementation in Acceptance Validation phase**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T010 [P] [US1] Integration test for [core feature behavior] in tests/integration/test_[name].py
+- [ ] T011 [P] [US1] Integration test for [edge case/error scenario] in tests/integration/test_[name].py
+- [ ] T012 [P] [US1] Unit tests for pure functions in tests/unit/test_[name].py (if pure functions exist)
 
-### Implementation for User Story 1
+### Implementation for User Story 1 - GREEN Phase
 
-- [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
-- [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
-- [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T016 [US1] Add validation and error handling
-- [ ] T017 [US1] Add logging for user story 1 operations
+> **RED phase complete (tests written and failing) - Now implement to make tests GREEN**
+
+- [ ] T013 [P] [US1] Create [Entity1] model in src/models/[entity1].py
+- [ ] T014 [P] [US1] Create [Entity2] model in src/models/[entity2].py
+- [ ] T015 [US1] Implement [Service] in src/services/[service].py (depends on T013, T014)
+- [ ] T016 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T017 [US1] Add validation and error handling
+- [ ] T018 [US1] Add logging for user story 1 operations
+
+### Refactor for User Story 1 - REFACTOR Phase
+
+> **GREEN phase complete (tests passing) - Now REFACTOR to improve code quality**
+
+- [ ] T019 [US1] Refactor for code quality, readability, performance (keep tests green)
+
+### Acceptance Validation for User Story 1 - E2E Tests
+
+> **Implementation complete - Now write E2E tests to VALIDATE full system integration**
+> **Testing Trophy: E2E tests (10-20%) validate user journeys work end-to-end**
+
+- [ ] T020 [P] [US1] E2E test for [critical user journey] in tests/e2e/test_[name].py (if critical path)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -105,17 +123,35 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 2 - RED Phase (MANDATORY) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+> **CONSTITUTION REQUIREMENT: Write these tests FIRST, ensure they FAIL before implementation**
+> **Note: E2E tests written AFTER implementation in Acceptance Validation phase**
 
-### Implementation for User Story 2
+- [ ] T021 [P] [US2] Integration test for [core feature behavior] in tests/integration/test_[name].py
+- [ ] T022 [P] [US2] Integration test for [edge case/error scenario] in tests/integration/test_[name].py
+- [ ] T023 [P] [US2] Unit tests for pure functions in tests/unit/test_[name].py (if pure functions exist)
 
-- [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
-- [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
-- [ ] T023 [US2] Integrate with User Story 1 components (if needed)
+### Implementation for User Story 2 - GREEN Phase
+
+> **RED phase complete (tests written and failing) - Now implement to make tests GREEN**
+
+- [ ] T024 [P] [US2] Create [Entity] model in src/models/[entity].py
+- [ ] T025 [US2] Implement [Service] in src/services/[service].py
+- [ ] T026 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T027 [US2] Integrate with User Story 1 components (if needed)
+
+### Refactor for User Story 2 - REFACTOR Phase
+
+> **GREEN phase complete (tests passing) - Now REFACTOR to improve code quality**
+
+- [ ] T028 [US2] Refactor for code quality, readability, performance (keep tests green)
+
+### Acceptance Validation for User Story 2 - E2E Tests
+
+> **Implementation complete - Now write E2E tests to VALIDATE full system integration**
+
+- [ ] T029 [P] [US2] E2E test for [critical user journey] in tests/e2e/test_[name].py (if critical path)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -127,16 +163,34 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 3 - RED Phase (MANDATORY) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+> **CONSTITUTION REQUIREMENT: Write these tests FIRST, ensure they FAIL before implementation**
+> **Note: E2E tests written AFTER implementation in Acceptance Validation phase**
 
-### Implementation for User Story 3
+- [ ] T030 [P] [US3] Integration test for [core feature behavior] in tests/integration/test_[name].py
+- [ ] T031 [P] [US3] Integration test for [edge case/error scenario] in tests/integration/test_[name].py
+- [ ] T032 [P] [US3] Unit tests for pure functions in tests/unit/test_[name].py (if pure functions exist)
 
-- [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
-- [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+### Implementation for User Story 3 - GREEN Phase
+
+> **RED phase complete (tests written and failing) - Now implement to make tests GREEN**
+
+- [ ] T033 [P] [US3] Create [Entity] model in src/models/[entity].py
+- [ ] T034 [US3] Implement [Service] in src/services/[service].py
+- [ ] T035 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+
+### Refactor for User Story 3 - REFACTOR Phase
+
+> **GREEN phase complete (tests passing) - Now REFACTOR to improve code quality**
+
+- [ ] T036 [US3] Refactor for code quality, readability, performance (keep tests green)
+
+### Acceptance Validation for User Story 3 - E2E Tests
+
+> **Implementation complete - Now write E2E tests to VALIDATE full system integration**
+
+- [ ] T037 [P] [US3] E2E test for [critical user journey] in tests/e2e/test_[name].py (if critical path)
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -153,7 +207,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] TXXX [P] Documentation updates in docs/
 - [ ] TXXX Code cleanup and refactoring
 - [ ] TXXX Performance optimization across all stories
-- [ ] TXXX [P] Additional unit tests (if requested) in tests/unit/
+- [ ] TXXX [P] Additional unit tests for newly identified pure functions in tests/unit/
 - [ ] TXXX Security hardening
 - [ ] TXXX Run quickstart.md validation
 
@@ -176,13 +230,26 @@ Examples of foundational tasks (adjust based on your project):
 - **User Story 2 (P2)**: Can start after Foundational (Phase 2) - May integrate with US1 but should be independently testable
 - **User Story 3 (P3)**: Can start after Foundational (Phase 2) - May integrate with US1/US2 but should be independently testable
 
-### Within Each User Story
+### Within Each User Story (Red-Green-Refactor + Acceptance Validation)
 
-- Tests (if included) MUST be written and FAIL before implementation
-- Models before services
-- Services before endpoints
-- Core implementation before integration
-- Story complete before moving to next priority
+1. **RED Phase**: Tests MUST be written FIRST and FAIL before implementation
+   - Write all integration tests (primary focus - 60-70%)
+   - Write unit tests for pure functions (if any - 10-20%)
+   - **Do NOT write E2E tests yet** - implementation must exist first
+   - Verify all tests FAIL (proves tests work)
+2. **GREEN Phase**: Implement minimal code to pass tests
+   - Models before services
+   - Services before endpoints
+   - Core implementation before integration
+   - All integration and unit tests MUST pass before refactor
+3. **REFACTOR Phase**: Improve code quality while keeping tests green
+   - Clean up, optimize, improve readability
+   - Tests stay green throughout refactoring
+4. **ACCEPTANCE VALIDATION Phase**: Write E2E tests to validate integration
+   - Write E2E tests for critical user journeys (10-20%)
+   - Validate full system works from user perspective
+   - All E2E tests MUST pass
+5. Story complete and validated before moving to next priority
 
 ### Parallel Opportunities
 
@@ -198,13 +265,21 @@ Examples of foundational tasks (adjust based on your project):
 ## Parallel Example: User Story 1
 
 ```bash
-# Launch all tests for User Story 1 together (if tests requested):
-Task: "Contract test for [endpoint] in tests/contract/test_[name].py"
-Task: "Integration test for [user journey] in tests/integration/test_[name].py"
+# RED Phase: Launch integration and unit tests together (MANDATORY):
+Task: "Integration test for [core feature behavior] in tests/integration/test_[name].py"
+Task: "Integration test for [edge case/error scenario] in tests/integration/test_[name].py"
+Task: "Unit tests for pure functions in tests/unit/test_[name].py"
+# Note: E2E tests NOT written yet - wait until after implementation
 
-# Launch all models for User Story 1 together:
+# GREEN Phase: Launch all models together:
 Task: "Create [Entity1] model in src/models/[entity1].py"
 Task: "Create [Entity2] model in src/models/[entity2].py"
+
+# REFACTOR Phase: After tests pass
+Task: "Refactor for code quality, readability, performance"
+
+# ACCEPTANCE VALIDATION Phase: Now write E2E tests
+Task: "E2E test for [critical user journey] in tests/e2e/test_[name].py"
 ```
 
 ---
@@ -242,10 +317,25 @@ With multiple developers:
 
 ## Notes
 
-- [P] tasks = different files, no dependencies
-- [Story] label maps task to specific user story for traceability
+### Task Conventions
+- [P] tasks = different files, no dependencies (can run in parallel)
+- [Story] label maps task to specific user story for traceability (e.g., US1, US2, US3)
 - Each user story should be independently completable and testable
-- Verify tests fail before implementing
-- Commit after each task or logical group
+
+### TDD Requirements (Constitution Compliance)
+- **RED**: Write integration and unit tests FIRST, verify they FAIL before any implementation
+  - Integration tests (60-70%) - drive implementation design
+  - Unit tests (10-20%) - for pure functions only
+  - **E2E tests NOT written yet** - wait for Acceptance Validation phase
+- **GREEN**: Implement code to pass integration/unit tests, commit when tests pass
+- **REFACTOR**: Improve code quality while keeping tests green, commit when complete
+- **ACCEPTANCE VALIDATION**: Write E2E tests (10-20%) after implementation to validate full system
+- Testing Trophy: Integration-first (60-70%), E2E after implementation (10-20%), unit for pure functions (10-20%)
+- No implementation code without failing integration/unit tests first
+
+### Workflow
+- Commit after each Red-Green-Refactor-Acceptance cycle or logical group
+- E2E tests validate integration after implementation completes
 - Stop at any checkpoint to validate story independently
+- Review test distribution regularly (ensure integration test focus)
 - Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence

@@ -31,7 +31,29 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### Test-Driven Development (MANDATORY)
+- [ ] Feature spec includes testable acceptance criteria
+- [ ] User stories have clear "Given-When-Then" scenarios
+- [ ] Plan includes test-first approach (Red-Green-Refactor)
+- [ ] Testing strategy follows Testing Trophy paradigm
+
+### Testing Trophy Compliance
+- [ ] Integration tests identified for core feature behavior (60-70% of tests)
+- [ ] E2E tests identified for critical user journeys (10-20% of tests)
+- [ ] Unit tests planned only for pure functions (10-20% of tests)
+- [ ] No unit tests planned for services, classes, or stateful components
+
+### Test Quality Standards
+- [ ] All test scenarios follow Arrange-Act-Assert pattern
+- [ ] Tests verify meaningful combinations (not just coverage)
+- [ ] Edge cases and error conditions identified
+- [ ] Security and boundary conditions planned
+
+### Red-Green-Refactor Workflow
+- [ ] Tests will be written before implementation
+- [ ] Tests will fail initially (RED phase)
+- [ ] Implementation follows to pass tests (GREEN phase)
+- [ ] Refactoring planned after tests pass (REFACTOR phase)
 
 ## Project Structure
 
