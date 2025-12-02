@@ -41,8 +41,8 @@ Q2 = Question(
     description="Select 1-2 that best fit - you can mix plots, but one should be primary",
     type=QuestionType.CHECKBOXES,
     options=[
-        "Rags to Riches (self-made success, rising from humble beginnings)",
         "Overcoming the Monster (defeating obstacles/competition/evil forces)",
+        "Rags to Riches (self-made success, rising from humble beginnings)",
         "The Quest (journey to obtain a goal, facing trials along the way)",
         "Voyage and Return (entering a strange new world, then returning changed)",
         "Comedy (entertaining through jokes, skits, characters, punchlines)",
