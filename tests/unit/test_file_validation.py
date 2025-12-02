@@ -145,7 +145,7 @@ class TestBatchFileValidation:
             for i in range(7)
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
@@ -161,7 +161,7 @@ class TestBatchFileValidation:
             for i in range(3)
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
@@ -176,7 +176,7 @@ class TestBatchFileValidation:
             for i in range(18)
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
@@ -191,7 +191,7 @@ class TestBatchFileValidation:
             for i in range(10)
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
@@ -207,7 +207,7 @@ class TestBatchFileValidation:
             for i in range(15)
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
@@ -225,12 +225,13 @@ class TestBatchFileValidation:
             self._create_mock_file(5, "photo4.jpg"),
         ]
         
-        uploaded, errors = self.service.batch_upload_files(
+        _, errors = self.service.batch_upload_files(
             files, "test_session/20231201", self.validation_rules
         )
         
         # Should have errors for oversized file and PDF
         assert len(errors) >= 2
         assert any("too_large.jpg" in e and "20MB" in e for e in errors)
-        assert any("document.pdf" in e and ("not allowed" in e.lower() or "file type" in e.lower()) for e in errors)
+        # PDF error message contains mime type, not filename
+        assert any("application/pdf" in e.lower() and "not allowed" in e.lower() for e in errors)
 
