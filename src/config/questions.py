@@ -55,16 +55,15 @@ Q2 = Question(
 Q3 = Question(
     id="Q3",
     text="What are the KEY PLOT POINTS in your story that you want the audience to know?",
-    description=(
-        "Depending on your plot structure, think about:\n"
-        "• For Overcoming the Monster: What's your 'monster'? What are you fighting against?\n"
-        "• For Rags to Riches: Where did you start? What's the mountain you're climbing?\n"
-        "• For The Quest: What's your goal/destination? What trials are you facing?\n"
-        "• For Voyage and Return: What new worlds are you exploring?\n"
-        "• For Comedy: What recurring characters, jokes, or themes make your brand funny?\n"
-        "• For Tragedy: What struggles, darkness, or emotional themes are you exploring?\n"
-        "• For Rebirth: What trapped you? How were you freed/reborn?"
-    ),
+    description="""Depending on your plot structure, think about:
+
+* For Overcoming the Monster: What's your 'monster'? What are you fighting against?
+* For Rags to Riches: Where did you start? What's the mountain you're climbing?
+* For The Quest: What's your goal/destination? What trials are you facing?
+* For Voyage and Return: What new worlds are you exploring?
+* For Comedy: What recurring characters, jokes, or themes make your brand funny?
+* For Tragedy: What struggles, darkness, or emotional themes are you exploring?
+* For Rebirth: What trapped you? How were you freed/reborn?""",
     type=QuestionType.PARAGRAPH,
     validation=ValidationRule(required=True, min_length=100),
 )
@@ -144,15 +143,12 @@ Q30 = Question(
 Q44 = Question(
     id="Q44",
     text="Elevator Pitch: In 3 sentences or less, describe your brand story.",
-    description=(
-        "What's the show your fans are tuning in to watch?\n\n"
-        "Examples:\n"
-        "• 'Isoxo and Knock2: Two high-energy rebel brands that focus on freedom of expression. "
-        "The brand celebrates outcasts and ignites a feeling of positive rebellion at every turn. "
-        "The visual identity has an edge with undertones of nostalgia, rock, and metal influences.'\n"
-        "• 'Two friends: An everyman brand about two lifelong best friends focused on relatability and fun. "
-        "The two bring you into their normal, authentic world where extraordinary moments happen.'"
-    ),
+    description="""What's the show your fans are tuning in to watch?
+
+**Examples:**
+
+* *Isoxo and Knock2*: Two high-energy rebel brands that focus on freedom of expression. The brand celebrates outcasts and ignites a feeling of positive rebellion at every turn. The visual identity has an edge with undertones of nostalgia, rock, and metal influences.
+* *Two friends*: An everyman brand about two lifelong best friends focused on relatability and fun. The two bring you into their normal, authentic world where extraordinary moments happen.""",
     type=QuestionType.PARAGRAPH,
     validation=ValidationRule(required=True, min_length=100),
 )
