@@ -54,7 +54,9 @@ def render_question(question):
     st.markdown(f"### {question.text}")
     
     if question.description:
-        st.markdown(f"*{question.description}*")
+        # Replace \n with markdown line breaks (two spaces + newline)
+        formatted_description = question.description.replace("\n", "  \n")
+        st.markdown(f"*{formatted_description}*")
     
     # Get previous response if exists
     previous_response = st.session_state.form_session.get_response(question.id)
