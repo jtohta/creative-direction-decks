@@ -171,9 +171,31 @@ def handle_file_upload(uploaded_files, question_id):
         )
         
         if errors:
-            # Log validation errors (these are user errors, not system errors)
-            logger.info(f"File validation errors for session {st.session_state.form_session.session_id}: {errors}")
-            return False, [], "\n".join(errors)
+            # Separate validation errors (user errors) from system errors (backend errors)
+            validation_errors = []
+            system_errors = []
+            
+            for error in errors:
+                # Check if this is a system/backend error (SSL, connection, etc.)
+                if any(keyword in error.lower() for keyword in ["ssl", "tls", "connection", "unexpected error", "handshake"]):
+                    system_errors.append(error)
+                else:
+                    # This is a validation error (file too large, wrong type, etc.)
+                    validation_errors.append(error)
+            
+            # Log system errors but don't show them to users
+            if system_errors:
+                logger.error(
+                    f"File upload system errors for session {st.session_state.form_session.session_id}: {system_errors}",
+                    exc_info=False
+                )
+                # Return friendly message for system errors
+                return False, [], "Unable to upload files at this time. Please try again later or contact support if the problem persists."
+            
+            # Show validation errors to users (these are actionable)
+            if validation_errors:
+                logger.info(f"File validation errors for session {st.session_state.form_session.session_id}: {validation_errors}")
+                return False, [], "\n".join(validation_errors)
     
     except Exception as e:
         # Log the actual backend error
