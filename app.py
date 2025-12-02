@@ -71,11 +71,18 @@ def render_question(question):
     
     elif question.type.value == "checkboxes":
         st.write("Select 1-2 options:")
+        # Store checkbox selections in session state
+        if f"checkbox_selections_{question.id}" not in st.session_state:
+            st.session_state[f"checkbox_selections_{question.id}"] = default_value or []
+        
         selected = []
         for option in question.options:
-            is_checked = default_value and option in default_value
+            is_checked = option in st.session_state[f"checkbox_selections_{question.id}"]
             if st.checkbox(option, value=is_checked, key=f"checkbox_{question.id}_{option}"):
                 selected.append(option)
+        
+        # Update session state with current selections
+        st.session_state[f"checkbox_selections_{question.id}"] = selected
         answer = selected
     
     elif question.type.value == "short_answer":
@@ -181,7 +188,13 @@ def advance_to_next_question():
         return
     
     question = QUESTIONS[current_index]
-    answer = st.session_state.get(f"input_{question.id}")
+    
+    # Get answer based on question type
+    if question.type.value == "checkboxes":
+        # For checkboxes, collect from checkbox selections stored in session state
+        answer = st.session_state.get(f"checkbox_selections_{question.id}", [])
+    else:
+        answer = st.session_state.get(f"input_{question.id}")
     
     # Special handling for file uploads
     if question.type.value == "file_upload":
@@ -226,7 +239,6 @@ def advance_to_next_question():
     # Clear error and advance
     st.session_state.validation_error = None
     st.session_state.current_question_index += 1
-    st.rerun()
 
 
 def go_back_to_previous_question():
@@ -234,7 +246,6 @@ def go_back_to_previous_question():
     if st.session_state.current_question_index > 0:
         st.session_state.current_question_index -= 1
         st.session_state.validation_error = None
-        st.rerun()
 
 
 def submit_questionnaire():
@@ -293,7 +304,6 @@ def submit_questionnaire():
     st.session_state.completion_email = email
     st.session_state.validation_error = None
     st.session_state.current_question_index += 1
-    st.rerun()
 
 
 def render_email_step():
@@ -352,7 +362,7 @@ def render_completion_page():
         # Clear session
         for key in list(st.session_state.keys()):
             del st.session_state[key]
-        st.rerun()
+        # Streamlit automatically reruns after button click
 
 
 def main():
