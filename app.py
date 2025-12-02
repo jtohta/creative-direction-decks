@@ -6,12 +6,20 @@ Per spec.md requirements.
 """
 
 import streamlit as st
+import logging
 from datetime import datetime, UTC
 from src.models import FormSession, Response, FileReference
 from src.config import QUESTIONS, get_r2_config, get_sendgrid_config, get_smtp_config
 from src.services import validate_response, R2StorageService, EmailDeliveryService
 from src.services.validation import validate_email
 from src.utils import export_to_json
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 # Page configuration
@@ -133,35 +141,48 @@ def handle_file_upload(uploaded_files, question_id):
     try:
         r2_config = get_r2_config()
     except KeyError as e:
-        return False, [], f"R2 configuration error: {e}"
+        logger.error(f"R2 configuration error: {e}")
+        return False, [], "File storage is not configured. Please contact support."
     
-    # Initialize R2 service
-    r2_service = R2StorageService(**r2_config)
+    try:
+        # Initialize R2 service
+        r2_service = R2StorageService(**r2_config)
+        
+        # Prepare files for batch upload
+        files_to_upload = []
+        for uploaded_file in uploaded_files:
+            uploaded_file.seek(0)  # Reset file pointer
+            files_to_upload.append((uploaded_file, uploaded_file.name))
+        
+        # Validation rules from question
+        question = next(q for q in QUESTIONS if q.id == question_id)
+        validation_rules = {
+            "allowed_types": question.validation.allowed_file_types,
+            "max_file_size_mb": question.validation.max_file_size_mb,
+            "max_total_size_mb": question.validation.max_total_size_mb,
+            "min_files": question.validation.min_files,
+            "max_files": question.validation.max_files,
+        }
+        
+        # Upload files
+        session_folder = st.session_state.form_session.r2_folder_path
+        uploaded_file_info, errors = r2_service.batch_upload_files(
+            files_to_upload, session_folder, validation_rules
+        )
+        
+        if errors:
+            # Log validation errors (these are user errors, not system errors)
+            logger.info(f"File validation errors for session {st.session_state.form_session.session_id}: {errors}")
+            return False, [], "\n".join(errors)
     
-    # Prepare files for batch upload
-    files_to_upload = []
-    for uploaded_file in uploaded_files:
-        uploaded_file.seek(0)  # Reset file pointer
-        files_to_upload.append((uploaded_file, uploaded_file.name))
-    
-    # Validation rules from question
-    question = next(q for q in QUESTIONS if q.id == question_id)
-    validation_rules = {
-        "allowed_types": question.validation.allowed_file_types,
-        "max_file_size_mb": question.validation.max_file_size_mb,
-        "max_total_size_mb": question.validation.max_total_size_mb,
-        "min_files": question.validation.min_files,
-        "max_files": question.validation.max_files,
-    }
-    
-    # Upload files
-    session_folder = st.session_state.form_session.r2_folder_path
-    uploaded_file_info, errors = r2_service.batch_upload_files(
-        files_to_upload, session_folder, validation_rules
-    )
-    
-    if errors:
-        return False, [], "\n".join(errors)
+    except Exception as e:
+        # Log the actual backend error
+        logger.error(
+            f"File upload failed for session {st.session_state.form_session.session_id}: {type(e).__name__}: {str(e)}",
+            exc_info=True
+        )
+        # Return user-friendly message
+        return False, [], "Unable to upload files at this time. Please try again later or contact support if the problem persists."
     
     # Convert to FileReference objects
     file_references = [
@@ -294,10 +315,15 @@ def submit_questionnaire():
         )
         
         if not success:
-            st.warning(f"Email delivery failed: {email_error}")
+            logger.error(f"Email delivery failed for {email}: {email_error}")
+            st.info("📧 Email delivery is temporarily unavailable. You can download your responses below.")
         
-    except KeyError:
-        st.warning("Email configuration not found. Download JSON manually below.")
+    except KeyError as e:
+        logger.warning(f"Email configuration missing: {e}")
+        st.info("📧 Email is not configured. You can download your responses below.")
+    except Exception as e:
+        logger.error(f"Unexpected error sending email: {type(e).__name__}: {str(e)}", exc_info=True)
+        st.info("📧 Unable to send email at this time. You can download your responses below.")
     
     # Store JSON and email in session for completion page
     st.session_state.completion_json = json_data
