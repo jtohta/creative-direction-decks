@@ -8,7 +8,6 @@ Per FR-013, FR-014, FR-015: Validate file uploads for:
 - Total upload size (200MB max)
 """
 
-import pytest
 import io
 from src.services.r2_storage import R2StorageService
 
