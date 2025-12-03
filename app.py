@@ -30,7 +30,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# Custom CSS - Phase 1: Base layout & typography
+# Custom CSS - Phase 1 & 2: Layout, typography, and mobile responsiveness
 st.html("""
 <style>
     /* Hide Streamlit chrome */
@@ -90,11 +90,152 @@ st.html("""
     .stTextInput input {
         border: 1px solid #CBD5E0;
         border-radius: 6px;
+        font-size: 1rem;
     }
     
-    /* Radio/checkbox base spacing */
-    .stRadio > div { gap: 0.5rem; }
+    /* Radio/checkbox base spacing - compact to avoid scrolling */
+    .stRadio > div { gap: 0; }
+    
+    /* Reduce Streamlit's default element container gap for radio */
+    div.stElementContainer:has(.stRadio) {
+        gap: 0;
+        margin-block-start: 0;
+    }
+    
+
     div[data-testid="stCheckbox"] { margin-bottom: -0.75rem; }
+    
+    /* Radio/checkbox touch targets */
+    div[data-testid="stRadio"] label,
+    div[data-testid="stCheckbox"] label {
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+    
+    /* ===== Phase 3: Focus states ===== */
+    .stTextInput input:focus,
+    .stTextArea textarea:focus,
+    input[type="email"]:focus,
+    input[type="text"]:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #A0AEC0;
+        box-shadow: 0 0 0 1px #A0AEC0, 0 0 0 4px rgba(160, 174, 192, 0.25);
+    }
+    
+    /* File uploader */
+    div[data-testid="stFileUploader"] {
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    div[data-testid="stFileUploader"] section {
+        border-radius: 8px;
+        border-color: #CBD5E0;
+    }
+    
+    /* Error messages */
+    div[data-testid="stAlert"] {
+        margin-top: 0.75rem;
+    }
+    div[data-testid="stAlert"] p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+    
+    /* ===== Phase 4: Typeform-like visual polish ===== */
+    
+    /* Progress bar spacing */
+    div[data-testid="stProgress"] {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Progress caption - subtle, right-aligned */
+    div[data-testid="stCaptionContainer"] p {
+        font-size: 0.8rem;
+        color: #64748B;
+        text-align: right;
+    }
+    
+    /* Primary button - Typeform-style with gradient and polish */
+    button[data-testid="stBaseButton-primary"] {
+        min-height: 44px;
+        font-size: 1rem;
+        font-weight: 500;
+        background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+        transition: all 0.2s ease;
+    }
+    button[data-testid="stBaseButton-primary"]:hover {
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        transform: translateY(-1px);
+    }
+    button[data-testid="stBaseButton-primary"]:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+    }
+    
+    /* Secondary button - subtle, ghost-like */
+    button[data-testid="stBaseButton-secondary"] {
+        min-height: 44px;
+        font-size: 1rem;
+        font-weight: 500;
+        background: transparent;
+        border: 1px solid #CBD5E0;
+        border-radius: 8px;
+        color: #4A5568;
+        transition: all 0.2s ease;
+    }
+    button[data-testid="stBaseButton-secondary"]:hover {
+        background: #F7FAFC;
+        border-color: #A0AEC0;
+    }
+    button[data-testid="stBaseButton-secondary"]:active {
+        background: #EDF2F7;
+    }
+    
+    /* ===== Mobile styles (max-width: 768px) ===== */
+    @media (max-width: 768px) {
+        .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+        
+        /* Smaller card padding on mobile */
+        div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {
+            padding: 1.25rem;
+            border-radius: 10px;
+        }
+        
+        /* Slightly smaller title on mobile */
+        div[data-testid="stSubheader"] p {
+            font-size: 1.35rem;
+        }
+        
+        /* Touch targets on mobile */
+        div[data-testid="stRadio"] label,
+        div[data-testid="stCheckbox"] label {
+            min-height: 40px;
+            padding: 0.375rem 0;
+        }
+        
+        /* Larger buttons on mobile */
+        button[data-testid="stBaseButton-primary"],
+        button[data-testid="stBaseButton-secondary"] {
+            min-height: 48px;
+        }
+        
+        /* Reverse button order on mobile: Next above Back */
+        div[data-testid="stHorizontalBlock"]:has(button) {
+            flex-direction: column-reverse;
+            gap: 0.5rem;
+        }
+    }
 </style>
 """)
 
@@ -151,9 +292,6 @@ def render_question(question):
     with st.container(border=True):
         st.subheader(question.text)
         
-        if question.description:
-            st.caption(question.description)
-        
         # Get previous response if exists
         previous_response = st.session_state.form_session.get_response(question.id)
         default_value = previous_response.answer_value if previous_response else None
@@ -161,14 +299,14 @@ def render_question(question):
         # Render appropriate input widget based on question type
         if question.type.value == "multiple_choice":
             answer = st.radio(
-                "Select one:",
+                label=question.description or "",
                 options=question.options,
                 index=question.options.index(default_value) if default_value in question.options else 0,
                 key=f"input_{question.id}",
             )
         
         elif question.type.value == "checkboxes":
-            st.write("Select 1-2 options:")
+            st.caption(question.description or "Select 1-2 options:")
             # Store checkbox selections in session state
             if f"checkbox_selections_{question.id}" not in st.session_state:
                 st.session_state[f"checkbox_selections_{question.id}"] = default_value or []
@@ -185,20 +323,25 @@ def render_question(question):
         
         elif question.type.value == "short_answer":
             answer = st.text_input(
-                "Your answer:",
+                label=question.description or "Your answer:",
                 value=default_value or "",
                 key=f"input_{question.id}",
             )
         
         elif question.type.value == "paragraph":
+            if question.description:
+                st.markdown(question.description)
             answer = st.text_area(
-                "Your answer:",
+                label="Your answer:",
                 value=default_value or "",
                 height=150,
                 key=f"input_{question.id}",
+                label_visibility="collapsed",
             )
         
         elif question.type.value == "file_upload":
+            if question.description:
+                st.caption(question.description)
             st.info("📸 Upload 5-15 reference images (JPEG, PNG, or WebP)")
             st.caption("Max 20MB per file, 200MB total")
             
@@ -475,7 +618,7 @@ def render_email_step():
         st.subheader("📧 Almost done!")
         st.markdown("Enter your email to receive your questionnaire responses:")
         
-        email = st.text_input(
+        st.text_input(
             "Email address:",
             value=st.session_state.get("email_input", ""),
             key="email_input",
@@ -497,6 +640,9 @@ def render_email_step():
 
 def render_completion_page():
     """Render completion confirmation page."""
+    # Add vertical spacing for completion page
+    st.container(height=80, border=False)
+    
     st.balloons()
     
     with st.container(border=True):
