@@ -1,0 +1,15 @@
+[server]
+maxUploadSize = 200  # 200MB total upload limit
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#00FFCC"  # Future Cyan accent
+backgroundColor = "#0A0F0D"  # Deep Forest base
+secondaryBackgroundColor = "#1A2F23"  # Canopy Shadow
+textColor = "#F5F5F4"  # Clean Light
+
