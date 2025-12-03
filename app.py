@@ -9,7 +9,7 @@ import streamlit as st
 import logging
 from datetime import datetime, UTC
 from src.models import FormSession, Response, FileReference
-from src.config import QUESTIONS, get_r2_config, get_sendgrid_config, get_smtp_config
+from src.config import QUESTIONS, get_r2_config, get_yagmail_config, get_smtp_config
 from src.services import validate_response, R2StorageService, EmailDeliveryService
 from src.services.validation import validate_email
 from src.utils import export_to_json
@@ -325,19 +325,34 @@ def submit_questionnaire():
     
     # Send email
     try:
-        sendgrid_config = get_sendgrid_config()
-        smtp_config = get_smtp_config()
+        # Try Yagmail first (primary)
+        try:
+            yagmail_config = get_yagmail_config()
+            yagmail_params = {
+                "yagmail_user": yagmail_config["user"],
+                "yagmail_password": yagmail_config["password"],
+                "yagmail_from_email": yagmail_config.get("from_email"),
+                "yagmail_from_name": yagmail_config.get("from_name"),
+            }
+        except KeyError:
+            # Yagmail not configured, use empty params
+            yagmail_params = {}
         
-        email_service = EmailDeliveryService(
-            sendgrid_api_key=sendgrid_config["api_key"],
-            sendgrid_from_email=sendgrid_config["from_email"],
-            sendgrid_from_name=sendgrid_config["from_name"],
-            smtp_server=smtp_config["server"],
-            smtp_port=smtp_config["port"],
-            smtp_user=smtp_config["user"],
-            smtp_password=smtp_config["password"],
-            smtp_from_email=smtp_config["from_email"],
-        )
+        # Get SMTP config for fallback
+        try:
+            smtp_config = get_smtp_config()
+            smtp_params = {
+                "smtp_server": smtp_config["server"],
+                "smtp_port": smtp_config["port"],
+                "smtp_user": smtp_config["user"],
+                "smtp_password": smtp_config["password"],
+                "smtp_from_email": smtp_config["from_email"],
+            }
+        except KeyError:
+            # SMTP not configured, use empty params
+            smtp_params = {}
+        
+        email_service = EmailDeliveryService(**yagmail_params, **smtp_params)
         
         user_name = email.split("@")[0].title()  # Extract name from email
         success, email_error = email_service.send_questionnaire_completion_email(
