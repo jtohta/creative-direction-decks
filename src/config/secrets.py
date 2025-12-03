@@ -1,7 +1,7 @@
 """
 Secrets management helper functions.
 
-Provides easy access to Streamlit secrets for R2, SendGrid, and SMTP configuration.
+Provides easy access to Streamlit secrets for R2, Yagmail, and SMTP configuration.
 """
 
 import streamlit as st
@@ -38,29 +38,35 @@ def get_r2_config() -> Dict[str, Any]:
         )
 
 
-def get_sendgrid_config() -> Dict[str, str]:
+def get_yagmail_config() -> Dict[str, str]:
     """
-    Get SendGrid configuration from Streamlit secrets.
+    Get Yagmail configuration from Streamlit secrets.
     
     Returns:
-        Dictionary with SendGrid parameters:
-        - api_key: SendGrid API key
-        - from_email: Sender email address
-        - from_name: Sender display name
+        Dictionary with Yagmail parameters:
+        - user: Gmail address
+        - password: Gmail App Password
+        - from_email: Sender email (optional, defaults to user)
+        - from_name: Sender display name (optional)
     
     Raises:
         KeyError: If required secrets are missing
     """
     try:
-        return {
-            "api_key": st.secrets["sendgrid"]["api_key"],
-            "from_email": st.secrets["sendgrid"]["from_email"],
-            "from_name": st.secrets["sendgrid"]["from_name"],
+        config = {
+            "user": st.secrets["yagmail"]["user"],
+            "password": st.secrets["yagmail"]["password"],
         }
+        # Optional fields
+        if "from_email" in st.secrets["yagmail"]:
+            config["from_email"] = st.secrets["yagmail"]["from_email"]
+        if "from_name" in st.secrets["yagmail"]:
+            config["from_name"] = st.secrets["yagmail"]["from_name"]
+        return config
     except KeyError as e:
         raise KeyError(
-            f"Missing SendGrid configuration in secrets: {e}. "
-            "Please configure .streamlit/secrets.toml with [sendgrid] section."
+            f"Missing Yagmail configuration in secrets: {e}. "
+            "Please configure .streamlit/secrets.toml with [yagmail] section."
         )
 
 
