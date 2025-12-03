@@ -30,11 +30,82 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# Custom CSS - Phase 1: Base layout & typography
+st.html("""
+<style>
+    /* Hide Streamlit chrome */
+    #MainMenu, footer { visibility: hidden; }
+    
+    /* Global layout */
+    .stApp {
+        background-color: #ffffff;
+    }
+    
+    .block-container {
+        max-width: 640px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    /* Vertical centering */
+    div[data-testid="stMain"] > div[data-testid="stMainBlockContainer"] {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    div[data-testid="stMainBlockContainer"] > div[data-testid="stVerticalBlock"] {
+        flex-grow: 0;
+    }
+    
+    /* Card containers (st.container with border) */
+    div[data-testid="stVerticalBlock"] > div[data-testid="stVerticalBlockBorderWrapper"] {
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+        border: none;
+    }
+    
+    /* Question titles (using st.subheader) */
+    div[data-testid="stSubheader"] p {
+        font-size: 1.5rem;
+        line-height: 1.4;
+        font-weight: 600;
+        color: #1f2933;
+    }
+    
+    /* Progress bar spacing */
+    div[data-testid="stProgress"] {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Form controls - visible borders */
+    .stTextArea textarea,
+    .stTextInput input {
+        border: 1px solid #CBD5E0;
+        border-radius: 6px;
+    }
+    
+    /* Radio/checkbox base spacing */
+    .stRadio > div { gap: 0.5rem; }
+    div[data-testid="stCheckbox"] { margin-bottom: -0.75rem; }
+</style>
+""")
+
 
 def initialize_session():
     """Initialize session state with FormSession if not exists."""
     if "form_session" not in st.session_state:
         st.session_state.form_session = FormSession()
+    
+    if "current_step" not in st.session_state:
+        st.session_state.current_step = "welcome"  # welcome, questions, email, complete
     
     if "current_question_index" not in st.session_state:
         st.session_state.current_question_index = 0
@@ -43,14 +114,32 @@ def initialize_session():
         st.session_state.validation_error = None
 
 
+def start_questionnaire():
+    """Transition from welcome screen to first question."""
+    st.session_state.current_step = "questions"
+
+
+def render_welcome_screen():
+    """Render Typeform-style welcome screen."""
+    # Add vertical spacing for welcome page only
+    st.container(height=80, border=False)
+    
+    with st.container(border=True):
+        st.title("🎨 Creative Direction Questionnaire")
+        st.markdown("Answer a few questions to help us understand your brand's creative direction.")
+        st.markdown("*This takes about 5-10 minutes.*")
+        st.markdown("")
+        st.button("Start →", on_click=start_questionnaire, type="primary", use_container_width=True)
+
+
 def render_progress_bar():
-    """Render progress indicator showing completion percentage."""
+    """Render minimal progress indicator."""
     total_questions = len(QUESTIONS) + 1  # +1 for email step
     current_step = st.session_state.current_question_index + 1
     progress = current_step / total_questions
     
     st.progress(progress)
-    st.caption(f"Question {current_step} of {total_questions}")
+    st.caption(f"{current_step} of {total_questions}")
 
 
 def render_question(question):
@@ -59,72 +148,73 @@ def render_question(question):
     
     Returns the user's input value.
     """
-    st.markdown(f"### {question.text}")
-    
-    if question.description:
-        st.markdown(question.description)
-    
-    # Get previous response if exists
-    previous_response = st.session_state.form_session.get_response(question.id)
-    default_value = previous_response.answer_value if previous_response else None
-    
-    # Render appropriate input widget based on question type
-    if question.type.value == "multiple_choice":
-        answer = st.radio(
-            "Select one:",
-            options=question.options,
-            index=question.options.index(default_value) if default_value in question.options else 0,
-            key=f"input_{question.id}",
-        )
-    
-    elif question.type.value == "checkboxes":
-        st.write("Select 1-2 options:")
-        # Store checkbox selections in session state
-        if f"checkbox_selections_{question.id}" not in st.session_state:
-            st.session_state[f"checkbox_selections_{question.id}"] = default_value or []
+    with st.container(border=True):
+        st.subheader(question.text)
         
-        selected = []
-        for option in question.options:
-            is_checked = option in st.session_state[f"checkbox_selections_{question.id}"]
-            if st.checkbox(option, value=is_checked, key=f"checkbox_{question.id}_{option}"):
-                selected.append(option)
+        if question.description:
+            st.caption(question.description)
         
-        # Update session state with current selections
-        st.session_state[f"checkbox_selections_{question.id}"] = selected
-        answer = selected
-    
-    elif question.type.value == "short_answer":
-        answer = st.text_input(
-            "Your answer:",
-            value=default_value or "",
-            key=f"input_{question.id}",
-        )
-    
-    elif question.type.value == "paragraph":
-        answer = st.text_area(
-            "Your answer:",
-            value=default_value or "",
-            height=150,
-            key=f"input_{question.id}",
-        )
-    
-    elif question.type.value == "file_upload":
-        st.info("📸 Upload 5-15 reference images (JPEG, PNG, or WebP)")
-        st.caption("Max 20MB per file, 200MB total")
+        # Get previous response if exists
+        previous_response = st.session_state.form_session.get_response(question.id)
+        default_value = previous_response.answer_value if previous_response else None
         
-        uploaded_files = st.file_uploader(
-            "Choose images:",
-            type=["jpg", "jpeg", "png", "webp"],
-            accept_multiple_files=True,
-            key=f"input_{question.id}",
-        )
-        answer = uploaded_files
-    
-    else:
-        st.error(f"Unknown question type: {question.type}")
-        answer = None
-    
-    return answer
+        # Render appropriate input widget based on question type
+        if question.type.value == "multiple_choice":
+            answer = st.radio(
+                "Select one:",
+                options=question.options,
+                index=question.options.index(default_value) if default_value in question.options else 0,
+                key=f"input_{question.id}",
+            )
+        
+        elif question.type.value == "checkboxes":
+            st.write("Select 1-2 options:")
+            # Store checkbox selections in session state
+            if f"checkbox_selections_{question.id}" not in st.session_state:
+                st.session_state[f"checkbox_selections_{question.id}"] = default_value or []
+            
+            selected = []
+            for option in question.options:
+                is_checked = option in st.session_state[f"checkbox_selections_{question.id}"]
+                if st.checkbox(option, value=is_checked, key=f"checkbox_{question.id}_{option}"):
+                    selected.append(option)
+            
+            # Update session state with current selections
+            st.session_state[f"checkbox_selections_{question.id}"] = selected
+            answer = selected
+        
+        elif question.type.value == "short_answer":
+            answer = st.text_input(
+                "Your answer:",
+                value=default_value or "",
+                key=f"input_{question.id}",
+            )
+        
+        elif question.type.value == "paragraph":
+            answer = st.text_area(
+                "Your answer:",
+                value=default_value or "",
+                height=150,
+                key=f"input_{question.id}",
+            )
+        
+        elif question.type.value == "file_upload":
+            st.info("📸 Upload 5-15 reference images (JPEG, PNG, or WebP)")
+            st.caption("Max 20MB per file, 200MB total")
+            
+            uploaded_files = st.file_uploader(
+                "Choose images:",
+                type=["jpg", "jpeg", "png", "webp"],
+                accept_multiple_files=True,
+                key=f"input_{question.id}",
+            )
+            answer = uploaded_files
+        
+        else:
+            st.error(f"Unknown question type: {question.type}")
+            answer = None
+        
+        return answer
 
 
 def handle_file_upload(uploaded_files, question_id):
@@ -381,97 +471,97 @@ def submit_questionnaire():
 
 def render_email_step():
     """Render final email collection step."""
-    st.markdown("### 📧 Almost done!")
-    st.markdown("Enter your email to receive your questionnaire responses:")
-    
-    email = st.text_input(
-        "Email address:",
-        value=st.session_state.get("email_input", ""),
-        key="email_input",
-    )
-    
-    # Display validation error if exists
-    if st.session_state.validation_error:
-        st.error(st.session_state.validation_error)
-    
-    # Navigation buttons
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.button("← Back", on_click=go_back_to_previous_question, use_container_width=True)
-    
-    with col2:
-        st.button("Submit ✓", on_click=submit_questionnaire, type="primary", use_container_width=True)
+    with st.container(border=True):
+        st.subheader("📧 Almost done!")
+        st.markdown("Enter your email to receive your questionnaire responses:")
+        
+        email = st.text_input(
+            "Email address:",
+            value=st.session_state.get("email_input", ""),
+            key="email_input",
+        )
+        
+        # Display validation error if exists
+        if st.session_state.validation_error:
+            st.error(st.session_state.validation_error)
+        
+        # Navigation buttons
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.button("← Back", on_click=go_back_to_previous_question, use_container_width=True)
+        
+        with col2:
+            st.button("Submit ✓", on_click=submit_questionnaire, type="primary", use_container_width=True)
 
 
 def render_completion_page():
     """Render completion confirmation page."""
     st.balloons()
     
-    st.success("✅ Thank you for completing the Creative Direction Questionnaire!")
-    
-    st.markdown(f"""
-    ### Your submission has been received
-    
-    **Email:** {st.session_state.completion_email}
-    
-    Your responses have been emailed to you as a JSON file. You can also download them below.
-    """)
-    
-    # Download button for JSON
-    st.download_button(
-        label="📥 Download Responses (JSON)",
-        data=st.session_state.completion_json,
-        file_name=f"questionnaire_{st.session_state.form_session.session_id}.json",
-        mime="application/json",
-        use_container_width=True,
-    )
-    
-    st.markdown("---")
-    st.caption("We'll be in touch within 2-3 business days to discuss your creative direction.")
-    
-    # Option to start over
-    if st.button("Start New Questionnaire"):
-        # Clear session
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
-        # Streamlit automatically reruns after button click
+    with st.container(border=True):
+        st.success("✅ Thank you for completing the Creative Direction Questionnaire!")
+        
+        st.markdown(f"""
+### Your submission has been received
+
+**Email:** {st.session_state.completion_email}
+
+Your responses have been emailed to you as a JSON file. You can also download them below.
+        """)
+        
+        # Download button for JSON
+        st.download_button(
+            label="📥 Download Responses (JSON)",
+            data=st.session_state.completion_json,
+            file_name=f"questionnaire_{st.session_state.form_session.session_id}.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+        
+        st.markdown("---")
+        st.caption("We'll be in touch within 2-3 business days to discuss your creative direction.")
+        
+        # Option to start over
+        if st.button("Start New Questionnaire"):
+            # Clear session
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            # Streamlit automatically reruns after button click
 
 
 def main():
     """Main application entry point."""
     initialize_session()
     
-    # Header
-    st.title("🎨 Creative Direction Questionnaire")
-    st.markdown("*Answer one question at a time to define your brand's creative direction*")
-    st.markdown("---")
-    
+    current_step = st.session_state.current_step
     current_index = st.session_state.current_question_index
     
-    # Check if we're at completion page
+    # Welcome screen
+    if current_step == "welcome":
+        render_welcome_screen()
+        return
+    
+    # Completion page
     if current_index > len(QUESTIONS):
         render_completion_page()
         return
     
-    # Render progress bar
-    render_progress_bar()
-    st.markdown("")
-    
-    # Check if we're at email step
+    # Email step
     if current_index == len(QUESTIONS):
+        render_progress_bar()
         render_email_step()
         return
     
-    # Render current question
+    # Question screens
+    render_progress_bar()
+    
     question = QUESTIONS[current_index]
-    answer = render_question(question)
+    render_question(question)
     
     # Display validation error if exists
     if st.session_state.validation_error:
         st.error(st.session_state.validation_error)
-    
-    st.markdown("---")
     
     # Navigation buttons
     col1, col2 = st.columns([1, 1])
