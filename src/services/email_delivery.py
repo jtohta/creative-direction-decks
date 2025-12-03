@@ -1,32 +1,32 @@
 """
-Email delivery service with SendGrid primary and SMTP fallback.
+Email delivery service with Yagmail primary and SMTP fallback.
 
-Per contracts/email-delivery.md specification.
+Per contracts/yagmail-delivery.md specification.
 """
 
 import smtplib
 import json
+from io import BytesIO
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from typing import Optional
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
-import base64
+import yagmail
 
 
 class EmailDeliveryService:
     """
-    Service for sending emails via SendGrid (primary) with SMTP fallback.
+    Service for sending emails via Yagmail (primary) with SMTP fallback.
     
     Supports plain text and HTML emails with JSON attachments.
     """
     
     def __init__(
         self,
-        sendgrid_api_key: Optional[str] = None,
-        sendgrid_from_email: Optional[str] = None,
-        sendgrid_from_name: Optional[str] = None,
+        yagmail_user: Optional[str] = None,
+        yagmail_password: Optional[str] = None,
+        yagmail_from_email: Optional[str] = None,
+        yagmail_from_name: Optional[str] = None,
         smtp_server: Optional[str] = None,
         smtp_port: Optional[int] = None,
         smtp_user: Optional[str] = None,
@@ -34,21 +34,23 @@ class EmailDeliveryService:
         smtp_from_email: Optional[str] = None,
     ):
         """
-        Initialize email service with SendGrid and SMTP credentials.
+        Initialize email service with Yagmail and SMTP credentials.
         
         Args:
-            sendgrid_api_key: SendGrid API key (primary service)
-            sendgrid_from_email: Sender email for SendGrid
-            sendgrid_from_name: Sender display name for SendGrid
+            yagmail_user: Gmail address for Yagmail authentication (primary service)
+            yagmail_password: Gmail App Password for Yagmail (primary service)
+            yagmail_from_email: Sender email for Yagmail (optional, defaults to user)
+            yagmail_from_name: Sender display name for Yagmail (optional)
             smtp_server: SMTP server address (fallback service)
             smtp_port: SMTP server port (fallback service)
             smtp_user: SMTP username (fallback service)
             smtp_password: SMTP password (fallback service)
             smtp_from_email: Sender email for SMTP (fallback service)
         """
-        self.sendgrid_api_key = sendgrid_api_key
-        self.sendgrid_from_email = sendgrid_from_email
-        self.sendgrid_from_name = sendgrid_from_name
+        self.yagmail_user = yagmail_user
+        self.yagmail_password = yagmail_password
+        self.yagmail_from_email = yagmail_from_email or yagmail_user
+        self.yagmail_from_name = yagmail_from_name
         
         self.smtp_server = smtp_server
         self.smtp_port = smtp_port
@@ -124,9 +126,9 @@ Creative Direction Team
         json_content = json.dumps(questionnaire_data, indent=2)
         json_filename = f"questionnaire_submission_{questionnaire_data.get('submission_metadata', {}).get('session_id', 'unknown')}.json"
         
-        # Try SendGrid first
-        if self.sendgrid_api_key:
-            success, error = self._send_via_sendgrid(
+        # Try Yagmail first (primary)
+        if self.yagmail_user and self.yagmail_password:
+            success, error = self._send_via_yagmail(
                 to_email=to_email,
                 subject=subject,
                 html_content=html_body,
@@ -137,8 +139,8 @@ Creative Direction Team
             if success:
                 return True, None
             else:
-                # Log SendGrid failure, will try SMTP fallback
-                print(f"SendGrid failed: {error}. Trying SMTP fallback...")
+                # Log Yagmail failure, will try SMTP fallback
+                print(f"Yagmail failed: {error}. Trying SMTP fallback...")
         
         # Fallback to SMTP
         if self.smtp_server:
@@ -153,11 +155,11 @@ Creative Direction Team
             if success:
                 return True, None
             else:
-                return False, f"Both SendGrid and SMTP failed. Last error: {error}"
+                return False, f"Both Yagmail and SMTP failed. Last error: {error}"
         
-        return False, "No email service configured. Please configure SendGrid or SMTP."
+        return False, "No email service configured. Please configure Yagmail or SMTP."
     
-    def _send_via_sendgrid(
+    def _send_via_yagmail(
         self,
         to_email: str,
         subject: str,
@@ -167,42 +169,37 @@ Creative Direction Team
         attachment_filename: str,
     ) -> tuple[bool, Optional[str]]:
         """
-        Send email via SendGrid API.
+        Send email via Yagmail (primary method).
         
         Returns:
             Tuple of (success, error_message)
         """
         try:
-            # Create SendGrid message
-            message = Mail(
-                from_email=(self.sendgrid_from_email, self.sendgrid_from_name),
-                to_emails=to_email,
+            # Initialize Yagmail SMTP client
+            yag = yagmail.SMTP(
+                user=self.yagmail_user,
+                password=self.yagmail_password,
+            )
+            
+            # Yagmail's attachments parameter expects a LIST, not a dictionary
+            # Option 1: Use BytesIO with .name attribute (in-memory, no temp file)
+            attachment_file = BytesIO(attachment_content.encode('utf-8'))
+            attachment_file.name = attachment_filename  # Required for Yagmail to determine MIME type
+            
+            # Send email with HTML, text, and attachment
+            # Yagmail automatically handles text/HTML content ordering
+            # attachments must be a list, not a dict
+            yag.send(
+                to=to_email,
                 subject=subject,
-                html_content=html_content,
-                plain_text_content=text_content,
+                contents=[text_content, html_content],  # Yagmail handles text/HTML automatically
+                attachments=[attachment_file],  # LIST, not dict!
             )
             
-            # Add JSON attachment
-            encoded_content = base64.b64encode(attachment_content.encode()).decode()
-            attachment = Attachment(
-                FileContent(encoded_content),
-                FileName(attachment_filename),
-                FileType("application/json"),
-                Disposition("attachment"),
-            )
-            message.attachment = attachment
-            
-            # Send email
-            sg = SendGridAPIClient(self.sendgrid_api_key)
-            response = sg.send(message)
-            
-            if response.status_code >= 200 and response.status_code < 300:
-                return True, None
-            else:
-                return False, f"SendGrid returned status {response.status_code}"
+            return True, None
         
         except Exception as e:
-            return False, f"SendGrid error: {str(e)}"
+            return False, f"Yagmail error: {str(e)}"
     
     def _send_via_smtp(
         self,
