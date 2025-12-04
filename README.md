@@ -106,6 +106,28 @@ Deploy to Streamlit Community Cloud:
 
 See [quickstart.md](specs/001-streamlit-typeform-app/quickstart.md) for detailed deployment instructions.
 
+### Keep-Alive System
+
+Streamlit Community Cloud hibernates apps after 12 hours of inactivity. This repository includes a GitHub Action that automatically pings the app to prevent hibernation during active hours.
+
+**Schedule**: Every hour, 7am-10pm PST (daily)
+
+**How it works**:
+- GitHub Action runs on schedule
+- Makes HTTP GET request to `https://creative-direction-decks.streamlit.app/?healthcheck=1`
+- App logs healthcheck pings for monitoring
+- Prevents hibernation without affecting user experience
+
+**Monitoring**:
+- Check Streamlit app logs for "Healthcheck ping received" entries
+- Verify in GitHub Actions tab: "Keep Streamlit App Alive" workflow
+- Manual trigger available via workflow_dispatch for testing
+
+**Configuration**:
+- No secrets required (uses public app URL)
+- Schedule defined in `.github/workflows/keepalive.yml`
+- Adjust cron schedule if timezone changes needed
+
 ## License
 
 [Add license information]
