@@ -16,7 +16,8 @@ from src.models import Question, QuestionType, ValidationRule
 # Core Identity Questions
 Q1 = Question(
     id="Q1",
-    text="Who are you? (Select the archetype that best fits your brand)",
+    text="Who are you?",
+    description="Select the archetype that best fits your brand",
     type=QuestionType.MULTIPLE_CHOICE,
     options=[
         "Everyman (relatable, down-to-earth, authentic)",
@@ -57,11 +58,11 @@ Q3 = Question(
     text="What are the KEY PLOT POINTS in your story that you want the audience to know?",
     description="""Depending on your plot structure, think about:
 
-* For Overcoming the Monster: What's your 'monster'? What are you fighting against?
+* For Overcoming the Monster: What monster are you fighting against?
 * For Rags to Riches: Where did you start? What's the mountain you're climbing?
 * For The Quest: What's your goal/destination? What trials are you facing?
 * For Voyage and Return: What new worlds are you exploring?
-* For Comedy: What recurring characters, jokes, or themes make your brand funny?
+* For Comedy: What recurring jokes, characters, or themes define your brand?
 * For Tragedy: What struggles, darkness, or emotional themes are you exploring?
 * For Rebirth: What trapped you? How were you freed/reborn?""",
     type=QuestionType.PARAGRAPH,
@@ -115,11 +116,12 @@ Q16 = Question(
 Q28 = Question(
     id="Q28",
     text="Describe the color palette for your brand (in words, not hex codes)",
-    description=(
-        "Examples: 'neon pink and electric blue with black backgrounds', "
-        "'earthy browns and forest greens', 'monochrome black and white with red accents', "
-        "'pastel sunset colors', etc."
-    ),
+    description="""Examples:
+
+* Neon pink and electric blue with black backgrounds
+* Earthy browns and forest greens
+* Monochrome black and white with red accents
+* Pastel sunset colors""",
     type=QuestionType.PARAGRAPH,
     validation=ValidationRule(required=True, min_length=50),
 )

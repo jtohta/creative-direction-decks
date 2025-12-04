@@ -22,7 +22,7 @@ Per contracts/yagmail-delivery.md specification.
 
 import pytest
 import json
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 from src.services.email_delivery import EmailDeliveryService
 
 

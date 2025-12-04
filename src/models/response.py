@@ -6,7 +6,7 @@ Per data-model.md specification.
 
 from dataclasses import dataclass, field
 from datetime import datetime, UTC
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass

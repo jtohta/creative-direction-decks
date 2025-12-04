@@ -5,7 +5,6 @@ Per TDD workflow: These tests verify pure validation logic.
 Focus: validate_email, validate_response for text/choice questions.
 """
 
-import pytest
 from src.services.validation import validate_email, validate_response
 from src.models import Question, QuestionType, ValidationRule
 

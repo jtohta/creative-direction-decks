@@ -7,9 +7,9 @@ enableXsrfProtection = true
 gatherUsageStats = false
 
 [theme]
-base = "dark"
-primaryColor = "#00FFCC"  # Future Cyan accent
-backgroundColor = "#0A0F0D"  # Deep Forest base
-secondaryBackgroundColor = "#1A2F23"  # Canopy Shadow
-textColor = "#F5F5F4"  # Clean Light
+base = "light"
+primaryColor = "#4A5568"  # Neutral gray accent
+backgroundColor = "#FFFFFF"  # Clean white
+secondaryBackgroundColor = "#F7FAFC"  # Light gray
+textColor = "#1A202C"  # Dark gray for readability
 

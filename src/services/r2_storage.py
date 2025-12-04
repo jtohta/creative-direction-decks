@@ -10,7 +10,6 @@ from botocore.exceptions import ClientError
 from datetime import datetime, UTC
 from typing import BinaryIO, Optional
 import mimetypes
-import os
 
 
 class R2StorageService:

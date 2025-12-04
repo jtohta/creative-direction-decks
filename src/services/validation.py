@@ -33,7 +33,7 @@ def validate_response(question: Question, answer_value: Any) -> tuple[bool, Opti
     
     # Check if required and empty
     if validation.required and answer_value in (None, "", []):
-        return False, f"This question is required. Please provide an answer."
+        return False, "This question is required. Please provide an answer."
     
     # If not required and empty, allow it
     if not answer_value and not validation.required:
