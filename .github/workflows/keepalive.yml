@@ -16,8 +16,12 @@ jobs:
     steps:
       - name: Ping Streamlit app
         run: |
-          curl --fail --silent --show-error --max-time 10 \
+          curl -L --max-time 30 \
+            --cookie /tmp/streamlit-cookies.txt \
+            --cookie-jar /tmp/streamlit-cookies.txt \
             -A "streamlit-keepalive-bot" \
+            -w "\nHTTP Status: %{http_code}\n" \
+            -o /dev/null \
             "https://creative-direction-decks.streamlit.app/?healthcheck=1" || true
         
       - name: Log ping result
