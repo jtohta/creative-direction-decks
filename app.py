@@ -680,6 +680,11 @@ def main():
     """Main application entry point."""
     initialize_session()
     
+    # Log healthcheck pings from keep-alive bot
+    query_params = st.query_params
+    if query_params.get("healthcheck") == "1":
+        logger.info("Healthcheck ping received from keep-alive bot")
+    
     current_step = st.session_state.current_step
     current_index = st.session_state.current_question_index
     
